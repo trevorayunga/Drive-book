@@ -7,6 +7,9 @@ vi.mock('./context/AuthContext', () => ({
   useAuth: () => ({ user: null, loginWithGoogle: vi.fn(), logout: vi.fn() }),
   ProtectedRoute: ({ children }) => children,
 }));
+vi.mock('./services/cars', () => ({
+  getCars: vi.fn().mockResolvedValue([]),
+}));
 
 const renderAt = (path) =>
   render(
@@ -19,6 +22,10 @@ describe('App routing', () => {
   it('renders the home page', () => {
     renderAt('/');
     expect(screen.getByRole('heading', { name: /rent a car/i })).toBeInTheDocument();
+      it('renders the cars page', async () => {
+    renderAt('/cars');
+    expect(await screen.findByRole('heading', { name: /available cars/i })).toBeInTheDocument();
+  });
   });
 
   it('renders the login page', () => {

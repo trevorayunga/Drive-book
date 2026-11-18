@@ -11,6 +11,9 @@ export default function Navbar() {
           DriveBook
         </Link>
         <div className="flex items-center gap-4">
+          <Link to="/cars" className="text-sm hover:underline">
+            Cars
+          </Link>
           {user ? (
             <>
               <Link to="/bookings" className="text-sm hover:underline">

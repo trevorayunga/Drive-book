@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import MyBookings from './pages/MyBookings';
 import { ProtectedRoute } from './context/AuthContext';
+import Cars from './pages/Cars';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/cars" element={<Cars />} />
           <Route
             path="/bookings"
             element={
