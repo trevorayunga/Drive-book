@@ -19,3 +19,4 @@ export default defineConfig([
     },
   },
 ])
+globalIgnores(['dist', 'coverage', 'scripts'])
