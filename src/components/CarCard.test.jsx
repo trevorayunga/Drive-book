@@ -24,4 +24,13 @@ describe('CarCard', () => {
     const { container } = render(<CarCard car={{ ...car, image: 'http://x/y.jpg' }} />);
     expect(container.querySelector('img')).toHaveAttribute('src', 'http://x/y.jpg');
   });
+
+  it('renders extra content when children are provided', () => {
+    render(
+      <CarCard car={car}>
+        <button>Book now</button>
+      </CarCard>
+    );
+    expect(screen.getByRole('button', { name: 'Book now' })).toBeInTheDocument();
+  });
 });

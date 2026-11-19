@@ -1,4 +1,4 @@
-export default function CarCard({ car }) {
+export default function CarCard({ car, children }) {
   return (
     <article className="overflow-hidden rounded-lg bg-white shadow">
       <div
@@ -20,6 +20,7 @@ export default function CarCard({ car }) {
           {`KES ${car.pricePerDay.toLocaleString('en-US')}`}
           <span className="text-sm font-normal text-slate-500"> / day</span>
         </p>
+        {children && <div className="mt-4">{children}</div>}
       </div>
     </article>
   );
