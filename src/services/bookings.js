@@ -34,3 +34,7 @@ export async function createBooking(data) {
 export async function cancelBooking(id) {
   await updateDoc(doc(db, 'bookings', id), { status: 'cancelled' });
 }
+
+export async function getAllBookings() {
+  return toList(await getDocs(collection(db, 'bookings')));
+}

@@ -3,6 +3,7 @@ import { addDoc, getDocs, updateDoc, where } from 'firebase/firestore';
 import {
   cancelBooking,
   createBooking,
+  getAllBookings,
   getBookingsForCar,
   getUserBookings,
 } from './bookings';
@@ -40,6 +41,13 @@ describe('bookings service', () => {
     getDocs.mockResolvedValue(snapshot);
     await getUserBookings('u1');
     expect(where).toHaveBeenCalledWith('userId', '==', 'u1');
+  });
+
+  it('gets all bookings', async () => {
+    getDocs.mockResolvedValue(snapshot);
+    expect(await getAllBookings()).toEqual([
+      { id: 'b1', carId: 'c1', status: 'confirmed' },
+    ]);
   });
 
   it('creates a confirmed booking and returns its id', async () => {
