@@ -1,3 +1,4 @@
+
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -10,6 +11,15 @@ vi.mock('./context/AuthContext', () => ({
   ProtectedRoute: ({ children }) => children,
 }));
 
+vi.mock('./context/AdminRoute', () => ({
+  AdminRoute: ({ children }) => children,
+}));
+
+vi.mock('./services/admin', () => ({
+  adminLogin: vi.fn(),
+  isAdmin: vi.fn(),
+}));
+
 vi.mock('./services/cars', () => ({
   getCars: vi.fn().mockResolvedValue([]),
   getCar: vi.fn().mockResolvedValue(null),
@@ -18,6 +28,7 @@ vi.mock('./services/cars', () => ({
 vi.mock('./services/bookings', () => ({
   getUserBookings: vi.fn().mockResolvedValue([]),
   getBookingsForCar: vi.fn().mockResolvedValue([]),
+  getAllBookings: vi.fn().mockResolvedValue([]),
   createBooking: vi.fn(),
   cancelBooking: vi.fn(),
 }));
@@ -63,5 +74,15 @@ describe('App routing', () => {
     mockUser = { uid: 'u1' };
     renderAt('/cars/c1/book');
     expect(await screen.findByRole('alert')).toHaveTextContent('Car not found.');
+  });
+
+  it('renders the admin login page', () => {
+    renderAt('/admin/login');
+    expect(screen.getByRole('heading', { name: /admin login/i })).toBeInTheDocument();
+  });
+
+  it('renders the admin dashboard', async () => {
+    renderAt('/admin');
+    expect(await screen.findByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
   });
 });

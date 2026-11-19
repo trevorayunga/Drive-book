@@ -6,6 +6,9 @@ import MyBookings from './pages/MyBookings';
 import { ProtectedRoute } from './context/AuthContext';
 import Cars from './pages/Cars';
 import Book from './pages/Book';
+import { AdminRoute } from './context/AdminRoute';
+import AdminLogin from './pages/admin/AdminLogin';
+import Dashboard from './pages/admin/Dashboard';
 
 export default function App() {
   return (
@@ -30,6 +33,15 @@ export default function App() {
               <ProtectedRoute>
                 <Book />
               </ProtectedRoute>
+            }
+          />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Dashboard />
+              </AdminRoute>
             }
           />
         </Routes>
