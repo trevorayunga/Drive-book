@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import MyBookings from './pages/MyBookings';
 import { ProtectedRoute } from './context/AuthContext';
 import Cars from './pages/Cars';
+import Book from './pages/Book';
 
 export default function App() {
   return (
@@ -20,6 +21,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <MyBookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cars/:id/book"
+            element={
+              <ProtectedRoute>
+                <Book />
               </ProtectedRoute>
             }
           />

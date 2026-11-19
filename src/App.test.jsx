@@ -1,15 +1,29 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
 
+let mockUser = null;
+
 vi.mock('./context/AuthContext', () => ({
-  useAuth: () => ({ user: null, loginWithGoogle: vi.fn(), logout: vi.fn() }),
+  useAuth: () => ({ user: mockUser, loginWithGoogle: vi.fn(), logout: vi.fn() }),
   ProtectedRoute: ({ children }) => children,
 }));
 
 vi.mock('./services/cars', () => ({
   getCars: vi.fn().mockResolvedValue([]),
+  getCar: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('./services/bookings', () => ({
+  getUserBookings: vi.fn().mockResolvedValue([]),
+  getBookingsForCar: vi.fn().mockResolvedValue([]),
+  createBooking: vi.fn(),
+  cancelBooking: vi.fn(),
+}));
+
+vi.mock('./services/holidays', () => ({
+  getHolidays: vi.fn().mockResolvedValue([]),
 }));
 
 const renderAt = (path) =>
@@ -20,6 +34,10 @@ const renderAt = (path) =>
   );
 
 describe('App routing', () => {
+  beforeEach(() => {
+    mockUser = null;
+  });
+
   it('renders the home page', () => {
     renderAt('/');
     expect(screen.getByRole('heading', { name: /rent a car/i })).toBeInTheDocument();
@@ -30,13 +48,20 @@ describe('App routing', () => {
     expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
   });
 
-  it('renders the bookings page', () => {
-    renderAt('/bookings');
-    expect(screen.getByRole('heading', { name: /my bookings/i })).toBeInTheDocument();
-  });
-
   it('renders the cars page', async () => {
     renderAt('/cars');
     expect(await screen.findByRole('heading', { name: /available cars/i })).toBeInTheDocument();
+  });
+
+  it('renders the bookings page', async () => {
+    mockUser = { uid: 'u1' };
+    renderAt('/bookings');
+    expect(await screen.findByRole('heading', { name: /my bookings/i })).toBeInTheDocument();
+  });
+
+  it('renders the booking page', async () => {
+    mockUser = { uid: 'u1' };
+    renderAt('/cars/c1/book');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Car not found.');
   });
 });
