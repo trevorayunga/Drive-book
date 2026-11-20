@@ -8,6 +8,8 @@ const valid = {
   type: 'Sedan',
   pricePerDay: '4500',
   seats: '5',
+  description: '',
+  images: '',
 };
 
 describe('validateCar', () => {
@@ -37,5 +39,15 @@ describe('validateCar', () => {
     expect(validateCar({ ...valid, seats: '0' }, 2026)).toMatch(/seats/i);
     expect(validateCar({ ...valid, seats: '2.5' }, 2026)).toMatch(/seats/i);
     expect(validateCar({ ...valid, seats: '30' }, 2026)).toMatch(/seats/i);
+  });
+
+  it('limits the description length', () => {
+    expect(validateCar({ ...valid, description: 'a'.repeat(501) }, 2026)).toMatch(/description/i);
+    expect(validateCar({ ...valid, description: 'a'.repeat(500) }, 2026)).toBeNull();
+  });
+
+  it('checks the photo links', () => {
+    expect(validateCar({ ...valid, images: 'ftp://x/a.jpg' }, 2026)).toMatch(/photo links/i);
+    expect(validateCar({ ...valid, images: '/cars/a.jpg\nhttps://x.com/b.jpg' }, 2026)).toBeNull();
   });
 });
