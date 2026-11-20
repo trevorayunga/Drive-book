@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAllBookings } from '../../services/bookings';
 import { getCars } from '../../services/cars';
@@ -14,6 +15,13 @@ const bookings = [
   { id: 'b3', carName: 'Toyota Prado', userName: 'Joseph', startDate: '2099-03-01', endDate: '2099-03-04', totalPrice: 45000, status: 'cancelled' },
 ];
 
+const renderPage = () =>
+  render(
+    <MemoryRouter>
+      <Dashboard />
+    </MemoryRouter>
+  );
+
 const valueOf = (label) => screen.getByText(label).nextElementSibling;
 
 beforeEach(() => {
@@ -24,7 +32,7 @@ describe('Dashboard', () => {
   it('shows the statistics', async () => {
     getCars.mockResolvedValue(cars);
     getAllBookings.mockResolvedValue(bookings);
-    render(<Dashboard />);
+    renderPage();
     expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
     await screen.findByRole('heading', { name: 'Admin dashboard' });
     expect(valueOf('Total cars')).toHaveTextContent(/^2$/);
@@ -34,10 +42,18 @@ describe('Dashboard', () => {
     expect(valueOf('Revenue')).toHaveTextContent('KES 15,000');
   });
 
+  it('links to the manage pages', async () => {
+    getCars.mockResolvedValue(cars);
+    getAllBookings.mockResolvedValue(bookings);
+    renderPage();
+    expect(await screen.findByRole('link', { name: 'Manage cars' })).toHaveAttribute('href', '/admin/cars');
+    expect(screen.getByRole('link', { name: 'Manage bookings' })).toHaveAttribute('href', '/admin/bookings');
+  });
+
   it('lists recent bookings with the newest first', async () => {
     getCars.mockResolvedValue(cars);
     getAllBookings.mockResolvedValue(bookings);
-    render(<Dashboard />);
+    renderPage();
     const items = await screen.findAllByRole('listitem');
     expect(items[0]).toHaveTextContent('Toyota Prado');
     expect(items[2]).toHaveTextContent('Toyota Corolla');
@@ -46,14 +62,14 @@ describe('Dashboard', () => {
   it('shows an empty message when there are no bookings', async () => {
     getCars.mockResolvedValue([]);
     getAllBookings.mockResolvedValue([]);
-    render(<Dashboard />);
+    renderPage();
     expect(await screen.findByText('No bookings yet.')).toBeInTheDocument();
   });
 
   it('shows an error when the data cannot be loaded', async () => {
     getCars.mockRejectedValue(new Error('fail'));
     getAllBookings.mockResolvedValue([]);
-    render(<Dashboard />);
+    renderPage();
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not load dashboard data/i);
   });
 });

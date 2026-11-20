@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { calculateStats } from '../../lib/stats';
 import { getAllBookings } from '../../services/bookings';
 import { getCars } from '../../services/cars';
+import { Link } from 'react-router-dom';
 
 const money = (n) => `KES ${n.toLocaleString('en-US')}`;
 
@@ -37,6 +38,14 @@ export default function Dashboard() {
   return (
     <section>
       <h1 className="text-2xl font-bold">Admin dashboard</h1>
+      <div className="mt-4 flex gap-4 text-sm">
+        <Link to="/admin/cars" className="text-blue-600 underline">
+          Manage cars
+        </Link>
+        <Link to="/admin/bookings" className="text-blue-600 underline">
+          Manage bookings
+        </Link>
+      </div>
 
       <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map(([label, value]) => (
