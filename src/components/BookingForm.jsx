@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { calculatePrice, daysBetween, validateDates } from '../lib/bookingLogic';
+import { DEPOSIT_PERCENT, calculateDeposit } from '../lib/deposit';
+
 
 export default function BookingForm({
   car,
@@ -52,11 +54,16 @@ export default function BookingForm({
         />
       </label>
 
-      {isValid && (
-        <p className="text-slate-700">
-          Total: <strong>{`KES ${total.toLocaleString('en-US')}`}</strong>
-          {` for ${days} day${days === 1 ? '' : 's'}`}
-        </p>
+       {isValid && (
+        <div className="space-y-1 text-slate-700">
+          <p>
+            Total: <strong>{`KES ${total.toLocaleString('en-US')}`}</strong>
+            {` for ${days} day${days === 1 ? '' : 's'}`}
+          </p>
+          <p className="text-sm">
+            {`Refundable security deposit (${DEPOSIT_PERCENT}%): KES ${calculateDeposit(total).toLocaleString('en-US')}, paid at pickup`}
+          </p>
+        </div>
       )}
 
       {message && (

@@ -6,6 +6,7 @@ import { isAvailable } from '../lib/bookingLogic';
 import { createBooking, getBookingsForCar } from '../services/bookings';
 import { getCar } from '../services/cars';
 import { getHolidays } from '../services/holidays';
+import { business } from '../config/business';
 
 export default function Book() {
   const { id } = useParams();
@@ -79,6 +80,12 @@ export default function Book() {
       <h1 className="text-2xl font-bold">{`Book ${car.make} ${car.model}`}</h1>
       <p className="mt-1 text-slate-600">
         {`${car.year} · ${car.type} · ${car.seats} seats · KES ${car.pricePerDay.toLocaleString('en-US')} / day`}
+      </p>
+       <p className="mt-2 text-sm text-slate-600">
+        <Link to="/policy" className="text-blue-600 underline">
+          Read the rental policy
+        </Link>
+        {` · Questions? Call ${business.phone}`}
       </p>
       <BookingForm
         car={car}
