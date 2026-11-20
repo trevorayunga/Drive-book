@@ -1,4 +1,3 @@
-
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -23,6 +22,9 @@ vi.mock('./services/admin', () => ({
 vi.mock('./services/cars', () => ({
   getCars: vi.fn().mockResolvedValue([]),
   getCar: vi.fn().mockResolvedValue(null),
+  addCar: vi.fn(),
+  updateCar: vi.fn(),
+  deleteCar: vi.fn(),
 }));
 
 vi.mock('./services/bookings', () => ({
@@ -31,6 +33,7 @@ vi.mock('./services/bookings', () => ({
   getAllBookings: vi.fn().mockResolvedValue([]),
   createBooking: vi.fn(),
   cancelBooking: vi.fn(),
+  setBookingStatus: vi.fn(),
 }));
 
 vi.mock('./services/holidays', () => ({
@@ -84,5 +87,15 @@ describe('App routing', () => {
   it('renders the admin dashboard', async () => {
     renderAt('/admin');
     expect(await screen.findByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
+  });
+
+  it('renders the admin manage cars page', async () => {
+    renderAt('/admin/cars');
+    expect(await screen.findByRole('heading', { name: /manage cars/i })).toBeInTheDocument();
+  });
+
+  it('renders the admin manage bookings page', async () => {
+    renderAt('/admin/bookings');
+    expect(await screen.findByRole('heading', { name: /manage bookings/i })).toBeInTheDocument();
   });
 });

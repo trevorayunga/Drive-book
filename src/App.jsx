@@ -2,13 +2,15 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import MyBookings from './pages/MyBookings';
-import { ProtectedRoute } from './context/AuthContext';
 import Cars from './pages/Cars';
 import Book from './pages/Book';
-import { AdminRoute } from './context/AdminRoute';
+import MyBookings from './pages/MyBookings';
 import AdminLogin from './pages/admin/AdminLogin';
 import Dashboard from './pages/admin/Dashboard';
+import ManageCars from './pages/admin/ManageCars';
+import ManageBookings from './pages/admin/ManageBookings';
+import { ProtectedRoute } from './context/AuthContext';
+import { AdminRoute } from './context/AdminRoute';
 
 export default function App() {
   return (
@@ -20,18 +22,18 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/cars" element={<Cars />} />
           <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute>
-                <MyBookings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/cars/:id/book"
             element={
               <ProtectedRoute>
                 <Book />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings"
+            element={
+              <ProtectedRoute>
+                <MyBookings />
               </ProtectedRoute>
             }
           />
@@ -41,6 +43,22 @@ export default function App() {
             element={
               <AdminRoute>
                 <Dashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/cars"
+            element={
+              <AdminRoute>
+                <ManageCars />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/bookings"
+            element={
+              <AdminRoute>
+                <ManageBookings />
               </AdminRoute>
             }
           />
