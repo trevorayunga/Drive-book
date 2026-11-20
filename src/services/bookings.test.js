@@ -6,6 +6,7 @@ import {
   getAllBookings,
   getBookingsForCar,
   getUserBookings,
+  setBookingStatus,
 } from './bookings';
 
 vi.mock('firebase/firestore', () => ({
@@ -65,5 +66,10 @@ describe('bookings service', () => {
   it('cancels a booking by setting its status', async () => {
     await cancelBooking('b1');
     expect(updateDoc).toHaveBeenCalledWith('booking-ref', { status: 'cancelled' });
+  });
+
+  it('sets any booking status', async () => {
+    await setBookingStatus('b1', 'confirmed');
+    expect(updateDoc).toHaveBeenCalledWith('booking-ref', { status: 'confirmed' });
   });
 });

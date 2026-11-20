@@ -38,3 +38,7 @@ export async function cancelBooking(id) {
 export async function getAllBookings() {
   return toList(await getDocs(collection(db, 'bookings')));
 }
+
+export async function setBookingStatus(id, status) {
+  await updateDoc(doc(db, 'bookings', id), { status });
+}
