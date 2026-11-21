@@ -31,6 +31,7 @@ vi.mock('./services/bookings', () => ({
   getUserBookings: vi.fn().mockResolvedValue([]),
   getBookingsForCar: vi.fn().mockResolvedValue([]),
   getAllBookings: vi.fn().mockResolvedValue([]),
+   getAllContacts: vi.fn().mockResolvedValue({}),
   createBooking: vi.fn(),
   cancelBooking: vi.fn(),
   setBookingStatus: vi.fn(),

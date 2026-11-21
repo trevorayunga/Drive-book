@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isAvailable } from '../../lib/bookingLogic';
-import { getAllBookings, setBookingStatus } from '../../services/bookings';
+import { getAllBookings, getAllContacts, setBookingStatus } from '../../services/bookings';
 
 const money = (n) => `KES ${n.toLocaleString('en-US')}`;
 
 export default function ManageBookings() {
   const [bookings, setBookings] = useState([]);
+  const [contacts, setContacts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    getAllBookings()
-      .then((list) =>
-        setBookings([...list].sort((a, b) => b.startDate.localeCompare(a.startDate)))
-      )
+    Promise.all([getAllBookings(), getAllContacts().catch(() => ({}))])
+      .then(([list, contactMap]) => {
+        setBookings([...list].sort((a, b) => b.startDate.localeCompare(a.startDate)));
+        setContacts(contactMap);
+      })
       .catch(() => setError('Could not load bookings.'))
       .finally(() => setLoading(false));
   }, []);
@@ -79,6 +81,17 @@ export default function ManageBookings() {
               <p className="text-sm text-slate-600">
                 {`${b.userName} · ${b.startDate} to ${b.endDate} · ${money(b.totalPrice)} · ${b.status}`}
               </p>
+              {contacts[b.id] && (
+                <p className="text-sm text-slate-600">
+                  <a
+                    href={`tel:${contacts[b.id].phone}`}
+                    className="text-blue-600 underline"
+                  >
+                    {contacts[b.id].phone}
+                  </a>
+                  {contacts[b.id].notes && ` · Note: ${contacts[b.id].notes}`}
+                </p>
+              )}
             </div>
             {b.status === 'confirmed' ? (
               <button

@@ -2,11 +2,12 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getAllBookings, setBookingStatus } from '../../services/bookings';
+import { getAllBookings, getAllContacts, setBookingStatus } from '../../services/bookings';
 import ManageBookings from './ManageBookings';
 
 vi.mock('../../services/bookings', () => ({
   getAllBookings: vi.fn(),
+  getAllContacts: vi.fn(),
   setBookingStatus: vi.fn(),
 }));
 
@@ -26,6 +27,9 @@ const renderPage = () =>
 beforeEach(() => {
   vi.resetAllMocks();
   getAllBookings.mockResolvedValue(bookings);
+  getAllContacts.mockResolvedValue({
+    b1: { phone: '+254712345678', notes: 'Airport pickup' },
+  });
 });
 
 describe('ManageBookings', () => {
@@ -36,6 +40,28 @@ describe('ManageBookings', () => {
     expect(items).toHaveLength(3);
     expect(items[0]).toHaveTextContent('Joseph');
     expect(items[2]).toHaveTextContent('Trevor');
+  });
+
+  it('shows the customer phone number and note when there are contact details', async () => {
+    renderPage();
+    const link = await screen.findByRole('link', { name: '+254712345678' });
+    expect(link).toHaveAttribute('href', 'tel:+254712345678');
+    expect(screen.getByText(/Note: Airport pickup/)).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /^\+254/ })).toHaveLength(1);
+  });
+
+  it('shows a phone number without a note when the note is empty', async () => {
+    getAllContacts.mockResolvedValue({ b3: { phone: '+254722000111', notes: '' } });
+    renderPage();
+    expect(await screen.findByRole('link', { name: '+254722000111' })).toBeInTheDocument();
+    expect(screen.queryByText(/Note:/)).not.toBeInTheDocument();
+  });
+
+  it('still lists the bookings when the contact details cannot be loaded', async () => {
+    getAllContacts.mockRejectedValue(new Error('denied'));
+    renderPage();
+    expect(await screen.findAllByRole('listitem')).toHaveLength(3);
+    expect(screen.queryByRole('link', { name: /^\+254/ })).not.toBeInTheDocument();
   });
 
   it('cancels a confirmed booking', async () => {
