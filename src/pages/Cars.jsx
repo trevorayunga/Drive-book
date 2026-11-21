@@ -47,14 +47,23 @@ export default function Cars() {
         <p>No cars available.</p>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          
           {visible.map((car) => (
             <CarCard key={car.id} car={car}>
+               <div className="flex gap-2">
+                 <Link
+                  to={`/cars/${car.id}`}
+                  className="flex-1 rounded border border-blue-600 px-3 py-2 text-center text-sm font-medium text-blue-600 hover:bg-blue-50"
+                >
+                  View details
+                </Link>
               <Link
                 to={`/cars/${car.id}/book`}
                 className="block rounded bg-blue-600 px-3 py-2 text-center text-sm font-medium text-white hover:bg-blue-500"
               >
                 Book now
               </Link>
+              </div>
             </CarCard>
           ))}
         </div>

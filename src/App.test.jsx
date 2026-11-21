@@ -57,14 +57,29 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: /rent a car/i })).toBeInTheDocument();
   });
 
+  it('shows the footer on every page', () => {
+    renderAt('/');
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+  });
+
   it('renders the login page', () => {
     renderAt('/login');
     expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
   });
 
+  it('renders the rental policy page', () => {
+    renderAt('/policy');
+    expect(screen.getByRole('heading', { name: 'Rental policy' })).toBeInTheDocument();
+  });
+
   it('renders the cars page', async () => {
     renderAt('/cars');
     expect(await screen.findByRole('heading', { name: /available cars/i })).toBeInTheDocument();
+  });
+
+  it('renders the car details page', async () => {
+    renderAt('/cars/c1');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Car not found.');
   });
 
   it('renders the bookings page', async () => {
