@@ -14,6 +14,7 @@ const existing = {
   type: 'Hatchback',
   pricePerDay: 3000,
   seats: 4,
+  description: 'Compact city car',
   image: 'http://x/vitz.jpg',
 };
 
@@ -31,7 +32,7 @@ beforeEach(() => {
 });
 
 describe('CarForm', () => {
-  it('submits a new car using the API dropdowns', async () => {
+  it('submits a new car with a description and photos', async () => {
     const onSubmit = vi.fn();
     render(<CarForm onSubmit={onSubmit} onCancel={vi.fn()} />);
 
@@ -40,6 +41,8 @@ describe('CarForm', () => {
     await screen.findByRole('option', { name: 'Corolla' });
     await userEvent.selectOptions(screen.getByLabelText('Model'), 'Corolla');
     await fillRest('2021', 'Sedan', '4500', '5');
+    await userEvent.type(screen.getByLabelText('Description'), 'Reliable family sedan');
+    await userEvent.type(screen.getByLabelText(/photo links/i), '/cars/a.jpg{enter}/cars/b.jpg');
     await userEvent.click(screen.getByRole('button', { name: 'Add car' }));
 
     expect(getModels).toHaveBeenCalledWith('Toyota');
@@ -50,7 +53,9 @@ describe('CarForm', () => {
       type: 'Sedan',
       pricePerDay: 4500,
       seats: 5,
-      image: '',
+      description: 'Reliable family sedan',
+      image: '/cars/a.jpg',
+      images: ['/cars/a.jpg', '/cars/b.jpg'],
     });
   });
 
@@ -63,6 +68,8 @@ describe('CarForm', () => {
     expect(screen.getByLabelText('Make')).toHaveValue('Toyota');
     expect(screen.getByLabelText('Model')).toHaveValue('Vitz');
     expect(screen.getByLabelText('Year')).toHaveValue(2018);
+    expect(screen.getByLabelText('Description')).toHaveValue('Compact city car');
+    expect(screen.getByLabelText(/photo links/i)).toHaveValue('http://x/vitz.jpg');
 
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
     expect(onSubmit).toHaveBeenCalledWith({
@@ -72,7 +79,9 @@ describe('CarForm', () => {
       type: 'Hatchback',
       pricePerDay: 3000,
       seats: 4,
+      description: 'Compact city car',
       image: 'http://x/vitz.jpg',
+      images: ['http://x/vitz.jpg'],
     });
   });
 
@@ -97,7 +106,7 @@ describe('CarForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add car' }));
 
     expect(onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({ make: 'Suzuki', model: 'Swift', year: 2019 })
+      expect.objectContaining({ make: 'Suzuki', model: 'Swift', year: 2019, images: [] })
     );
     expect(getModels).not.toHaveBeenCalled();
   });

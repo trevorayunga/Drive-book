@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getCarImages, parseImageLines } from '../lib/carImages';
 import { CAR_TYPES, formatMake, withCurrent } from '../lib/carOptions';
 import { validateCar } from '../lib/carValidation';
 import { getMakes, getModels } from '../services/nhtsa';
@@ -10,7 +11,8 @@ const emptyValues = {
   type: '',
   pricePerDay: '',
   seats: '',
-  image: '',
+  description: '',
+  images: '',
 };
 
 const inputClass = 'mt-1 block w-full rounded border border-slate-300 px-3 py-2';
@@ -31,7 +33,8 @@ export default function CarForm({
           type: car.type,
           pricePerDay: String(car.pricePerDay),
           seats: String(car.seats),
-          image: car.image || '',
+          description: car.description || '',
+          images: getCarImages(car).join('\n'),
         }
       : emptyValues
   );
@@ -75,6 +78,7 @@ export default function CarForm({
       return;
     }
     setError('');
+    const images = parseImageLines(values.images);
     onSubmit({
       make: values.make.trim(),
       model: values.model.trim(),
@@ -82,7 +86,9 @@ export default function CarForm({
       type: values.type,
       pricePerDay: Number(values.pricePerDay),
       seats: Number(values.seats),
-      image: values.image.trim(),
+      description: values.description.trim(),
+      image: images[0] || '',
+      images,
     });
   };
 
@@ -103,9 +109,7 @@ export default function CarForm({
         ) : (
           <select
             value={values.make}
-            onChange={(e) =>
-              setValues((v) => ({ ...v, make: e.target.value, model: '' }))
-            }
+            onChange={(e) => setValues((v) => ({ ...v, make: e.target.value, model: '' }))}
             className={inputClass}
           >
             <option value="">Select make</option>
@@ -174,8 +178,24 @@ export default function CarForm({
       </label>
 
       <label className="block text-sm font-medium">
-        Image URL (optional)
-        <input type="text" value={values.image} onChange={set('image')} className={inputClass} />
+        Description
+        <textarea
+          value={values.description}
+          onChange={set('description')}
+          rows={3}
+          className={inputClass}
+        />
+      </label>
+
+      <label className="block text-sm font-medium">
+        Photo links (one per line, the first is the cover)
+        <textarea
+          value={values.images}
+          onChange={set('images')}
+          rows={4}
+          placeholder="/cars/vitz-1.jpg"
+          className={inputClass}
+        />
       </label>
 
       {message && (
