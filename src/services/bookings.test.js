@@ -1,23 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addDoc, getDocs, updateDoc, where } from 'firebase/firestore';
+import { doc, getDocs, updateDoc, where } from 'firebase/firestore';
 import {
   cancelBooking,
   createBooking,
   getAllBookings,
+  getAllContacts,
   getBookingsForCar,
   getUserBookings,
   setBookingStatus,
 } from './bookings';
 
+const batch = vi.hoisted(() => ({ set: vi.fn(), commit: vi.fn() }));
+
 vi.mock('firebase/firestore', () => ({
-  addDoc: vi.fn(),
-  collection: vi.fn(() => 'bookings-ref'),
-  doc: vi.fn(() => 'booking-ref'),
+  collection: vi.fn((_db, name) => `${name}-ref`),
+  doc: vi.fn(() => ({ id: 'new-id' })),
   getDocs: vi.fn(),
   query: vi.fn((...args) => args),
   serverTimestamp: vi.fn(() => 'now'),
   updateDoc: vi.fn(),
   where: vi.fn((...args) => args),
+  writeBatch: vi.fn(() => batch),
 }));
 vi.mock('../firebase', () => ({ db: {} }));
 
@@ -51,25 +54,52 @@ describe('bookings service', () => {
     ]);
   });
 
-  it('creates a confirmed booking and returns its id', async () => {
-    addDoc.mockResolvedValue({ id: 'new-id' });
-    const id = await createBooking({ carId: 'c1', userId: 'u1' });
+  it('creates the booking and its private contact record together', async () => {
+    batch.commit.mockResolvedValue();
+    const id = await createBooking(
+      { carId: 'c1', userId: 'u1' },
+      { phone: '+254712345678', notes: 'Airport pickup' }
+    );
     expect(id).toBe('new-id');
-    expect(addDoc).toHaveBeenCalledWith('bookings-ref', {
-      carId: 'c1',
-      userId: 'u1',
-      status: 'confirmed',
-      createdAt: 'now',
-    });
+    expect(batch.set).toHaveBeenCalledTimes(2);
+    expect(batch.set).toHaveBeenNthCalledWith(
+      1,
+      { id: 'new-id' },
+      { carId: 'c1', userId: 'u1', status: 'confirmed', createdAt: 'now' }
+    );
+    expect(batch.set).toHaveBeenNthCalledWith(
+      2,
+      { id: 'new-id' },
+      { userId: 'u1', phone: '+254712345678', notes: 'Airport pickup', createdAt: 'now' }
+    );
+    expect(batch.commit).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves empty notes when none are given', async () => {
+    batch.commit.mockResolvedValue();
+    await createBooking({ carId: 'c1', userId: 'u1' }, { phone: '+254712345678' });
+    expect(batch.set).toHaveBeenNthCalledWith(
+      2,
+      { id: 'new-id' },
+      expect.objectContaining({ notes: '' })
+    );
   });
 
   it('cancels a booking by setting its status', async () => {
     await cancelBooking('b1');
-    expect(updateDoc).toHaveBeenCalledWith('booking-ref', { status: 'cancelled' });
+    expect(doc).toHaveBeenCalledWith({}, 'bookings', 'b1');
+    expect(updateDoc).toHaveBeenCalledWith({ id: 'new-id' }, { status: 'cancelled' });
   });
 
   it('sets any booking status', async () => {
     await setBookingStatus('b1', 'confirmed');
-    expect(updateDoc).toHaveBeenCalledWith('booking-ref', { status: 'confirmed' });
+    expect(updateDoc).toHaveBeenCalledWith({ id: 'new-id' }, { status: 'confirmed' });
+  });
+
+  it('gets all contacts keyed by booking id', async () => {
+    getDocs.mockResolvedValue({
+      docs: [{ id: 'b1', data: () => ({ phone: '+254712345678', notes: '' }) }],
+    });
+    expect(await getAllContacts()).toEqual({ b1: { phone: '+254712345678', notes: '' } });
   });
 });
