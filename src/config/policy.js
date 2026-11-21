@@ -70,4 +70,12 @@ export const policySections = [
       'Carry no more passengers than the number of seats.',
     ],
   },
+    {
+    title: 'Your information',
+    items: [
+      'We collect your phone number only to contact you about your booking.',
+      'Your contact details are visible only to you and our staff, and are never sold or shared for advertising.',
+    ],
+  },
 ];
+
