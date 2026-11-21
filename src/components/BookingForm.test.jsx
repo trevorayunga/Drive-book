@@ -10,10 +10,15 @@ const fillDates = (start, end) => {
   fireEvent.change(screen.getByLabelText('Return date'), { target: { value: end } });
 };
 
+const fillPhone = (value) =>
+  fireEvent.change(screen.getByLabelText('Phone number'), { target: { value } });
+
+const submit = () => userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }));
+
 describe('BookingForm', () => {
   it('shows an error when submitted without dates', async () => {
     render(<BookingForm car={car} onSubmit={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }));
+    await submit();
     expect(screen.getByRole('alert')).toHaveTextContent(/both/i);
   });
 
@@ -21,7 +26,7 @@ describe('BookingForm', () => {
     const onSubmit = vi.fn();
     render(<BookingForm car={car} onSubmit={onSubmit} />);
     fillDates('2000-01-01', '2000-01-05');
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }));
+    await submit();
     expect(screen.getByRole('alert')).toHaveTextContent(/past/i);
     expect(onSubmit).not.toHaveBeenCalled();
   });
@@ -45,15 +50,38 @@ describe('BookingForm', () => {
     expect(screen.getByText(/for 1 day$/)).toBeInTheDocument();
   });
 
-  it('submits the booking details', async () => {
+  it('requires a phone number', async () => {
     const onSubmit = vi.fn();
     render(<BookingForm car={car} onSubmit={onSubmit} />);
     fillDates('2099-01-10', '2099-01-13');
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }));
+    await submit();
+    expect(screen.getByRole('alert')).toHaveTextContent(/phone number/i);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid phone number', async () => {
+    const onSubmit = vi.fn();
+    render(<BookingForm car={car} onSubmit={onSubmit} />);
+    fillDates('2099-01-10', '2099-01-13');
+    fillPhone('12345');
+    await submit();
+    expect(screen.getByRole('alert')).toHaveTextContent(/valid kenyan phone number/i);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('submits the booking details with a normalised phone number and notes', async () => {
+    const onSubmit = vi.fn();
+    render(<BookingForm car={car} onSubmit={onSubmit} />);
+    fillDates('2099-01-10', '2099-01-13');
+    fillPhone('0712 345 678');
+    await userEvent.type(screen.getByLabelText('Notes (optional)'), '  Airport pickup  ');
+    await submit();
     expect(onSubmit).toHaveBeenCalledWith({
       startDate: '2099-01-10',
       endDate: '2099-01-13',
       totalPrice: 13500,
+      phone: '+254712345678',
+      notes: 'Airport pickup',
     });
   });
 

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { calculatePrice, daysBetween, validateDates } from '../lib/bookingLogic';
 import { DEPOSIT_PERCENT, calculateDeposit } from '../lib/deposit';
+import { normalizePhone, validatePhone } from '../lib/phone';
 
+const inputClass = 'mt-1 block w-full rounded border border-slate-300 px-3 py-2';
 
 export default function BookingForm({
   car,
@@ -12,6 +14,8 @@ export default function BookingForm({
 }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [phone, setPhone] = useState('');
+  const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
 
   const isValid = !validateDates(startDate, endDate);
@@ -22,13 +26,19 @@ export default function BookingForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const problem = validateDates(startDate, endDate);
+    const problem = validateDates(startDate, endDate) || validatePhone(phone);
     if (problem) {
       setError(problem);
       return;
     }
     setError('');
-    onSubmit({ startDate, endDate, totalPrice: total });
+    onSubmit({
+      startDate,
+      endDate,
+      totalPrice: total,
+      phone: normalizePhone(phone),
+      notes: notes.trim(),
+    });
   };
 
   const message = error || serverError;
@@ -41,7 +51,7 @@ export default function BookingForm({
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          className="mt-1 block w-full rounded border border-slate-300 px-3 py-2"
+          className={inputClass}
         />
       </label>
       <label className="block text-sm font-medium">
@@ -50,18 +60,43 @@ export default function BookingForm({
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
-          className="mt-1 block w-full rounded border border-slate-300 px-3 py-2"
+          className={inputClass}
         />
       </label>
 
-       {isValid && (
+      <label className="block text-sm font-medium">
+        Phone number
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="0712 345 678"
+          className={inputClass}
+        />
+      </label>
+      <label className="block text-sm font-medium">
+        Notes (optional)
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={200}
+          rows={2}
+          placeholder="Pickup time, airport pickup, child seat..."
+          className={inputClass}
+        />
+      </label>
+      <p className="text-xs text-slate-500">
+        We use your phone number only to contact you about this booking.
+      </p>
+
+      {isValid && (
         <div className="space-y-1 text-slate-700">
           <p>
             Total: <strong>{`KES ${total.toLocaleString('en-US')}`}</strong>
             {` for ${days} day${days === 1 ? '' : 's'}`}
           </p>
           <p className="text-sm">
-            {`Refundable security deposit (${DEPOSIT_PERCENT}%): KES ${calculateDeposit(total).toLocaleString('en-US')}, paid at pickup`}
+            {`Refundable security deposit (${DEPOSIT_PERCENT}%): KES ${calculateDeposit(total).toLocaleString('en-US')}, paid at pickup (not charged online)`}
           </p>
         </div>
       )}

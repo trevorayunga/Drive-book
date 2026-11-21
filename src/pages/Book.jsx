@@ -34,7 +34,7 @@ export default function Book() {
       .catch(() => setHolidays([]));
   }, [id]);
 
-  const handleSubmit = async ({ startDate, endDate, totalPrice }) => {
+  const handleSubmit = async ({ startDate, endDate, totalPrice, phone, notes }) => {
     setServerError('');
     setSubmitting(true);
     try {
@@ -43,18 +43,22 @@ export default function Book() {
         setServerError('Sorry, this car is already booked for those dates.');
         return;
       }
-      await createBooking({
-        userId: user.uid,
-        userName: user.displayName || user.email,
-        carId: car.id,
-        carName: `${car.make} ${car.model}`,
-        startDate,
-        endDate,
-        totalPrice,
-      });
+      await createBooking(
+        {
+          userId: user.uid,
+          userName: user.displayName || user.email,
+          carId: car.id,
+          carName: `${car.make} ${car.model}`,
+          startDate,
+          endDate,
+          totalPrice,
+        },
+        { phone, notes }
+      );
       navigate('/bookings');
-    } catch {
-      setServerError('Could not save your booking. Please try again.');
+    } catch (err) {
+      console.error('Booking failed:', err);
+      setServerError(`Could not save your booking (${err.code || 'unknown error'}). Please try again.`);
     } finally {
       setSubmitting(false);
     }
@@ -81,7 +85,7 @@ export default function Book() {
       <p className="mt-1 text-slate-600">
         {`${car.year} · ${car.type} · ${car.seats} seats · KES ${car.pricePerDay.toLocaleString('en-US')} / day`}
       </p>
-       <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-slate-600">
         <Link to="/policy" className="text-blue-600 underline">
           Read the rental policy
         </Link>

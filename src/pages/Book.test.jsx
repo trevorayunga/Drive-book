@@ -37,9 +37,10 @@ const renderPage = () =>
     </MemoryRouter>
   );
 
-const fillDates = (start, end) => {
+const fillForm = (start, end) => {
   fireEvent.change(screen.getByLabelText('Pickup date'), { target: { value: start } });
   fireEvent.change(screen.getByLabelText('Return date'), { target: { value: end } });
+  fireEvent.change(screen.getByLabelText('Phone number'), { target: { value: '0712 345 678' } });
 };
 
 const submit = () => userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }));
@@ -77,20 +78,23 @@ describe('Book page', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not load the car/i);
   });
 
-  it('saves the booking and goes to My Bookings', async () => {
+  it('saves the booking with the contact details and goes to My Bookings', async () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Book Toyota Corolla' });
-    fillDates('2099-01-10', '2099-01-13');
+    fillForm('2099-01-10', '2099-01-13');
     await submit();
-    expect(createBooking).toHaveBeenCalledWith({
-      userId: 'u1',
-      userName: 'Trevor',
-      carId: 'c1',
-      carName: 'Toyota Corolla',
-      startDate: '2099-01-10',
-      endDate: '2099-01-13',
-      totalPrice: 13500,
-    });
+    expect(createBooking).toHaveBeenCalledWith(
+      {
+        userId: 'u1',
+        userName: 'Trevor',
+        carId: 'c1',
+        carName: 'Toyota Corolla',
+        startDate: '2099-01-10',
+        endDate: '2099-01-13',
+        totalPrice: 13500,
+      },
+      { phone: '+254712345678', notes: '' }
+    );
     expect(await screen.findByText('Bookings page')).toBeInTheDocument();
   });
 
@@ -100,7 +104,7 @@ describe('Book page', () => {
     ]);
     renderPage();
     await screen.findByRole('heading', { name: 'Book Toyota Corolla' });
-    fillDates('2099-01-10', '2099-01-13');
+    fillForm('2099-01-10', '2099-01-13');
     await submit();
     expect(await screen.findByRole('alert')).toHaveTextContent(/already booked/i);
     expect(createBooking).not.toHaveBeenCalled();
@@ -110,7 +114,7 @@ describe('Book page', () => {
     createBooking.mockRejectedValue(new Error('fail'));
     renderPage();
     await screen.findByRole('heading', { name: 'Book Toyota Corolla' });
-    fillDates('2099-01-10', '2099-01-13');
+    fillForm('2099-01-10', '2099-01-13');
     await submit();
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not save/i);
   });
