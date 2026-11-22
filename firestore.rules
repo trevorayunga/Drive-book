@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function validCar(c) {
+      return c.make is string && c.make.size() > 0
+        && c.model is string && c.model.size() > 0
+        && c.type is string
+        && c.year is number
+        && c.pricePerDay is number && c.pricePerDay > 0
+        && c.seats is number && c.seats > 0;
+    }
+
+    function validBooking(b) {
+      return b.carId is string
+        && b.startDate is string
+        && b.endDate is string
+        && b.endDate > b.startDate
+        && b.totalPrice is number && b.totalPrice > 0
+        && b.status == 'confirmed';
+    }
+
+    // Admin list: a user can only check their own entry; edited via the console only
+    match /admins/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Cars: public read, admin-only changes with valid data
+    match /cars/{carId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validCar(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Bookings: signed-in users read all (needed for the availability check),
+    // create their own, and may only cancel their own; admins manage any booking
+    match /bookings/{bookingId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && validBooking(request.resource.data);
+      allow update: if isAdmin()
+                    || (isSignedIn()
+                        && resource.data.userId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                        && request.resource.data.status == 'cancelled');
+      allow delete: if isAdmin();
+    }
+
+    // Private contact details: readable only by the customer who made the
+    // booking and by admins. Customers can create their own record only.
+    match /bookingContacts/{bookingId} {
+      allow read: if isAdmin()
+                  || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() >= 10
+                    && request.resource.data.phone.size() <= 13
+                    && request.resource.data.notes is string
+                    && request.resource.data.notes.size() <= 200;
+      allow update, delete: if isAdmin();
+    }
+  }
+}
