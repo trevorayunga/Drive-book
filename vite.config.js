@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  base: '/Drive-book/',
   plugins: [react(), tailwindcss()],
+  build: { chunkSizeWarningLimit: 1000 },
   test: {
     environment: 'jsdom',
     globals: true,
