@@ -4,9 +4,9 @@ A car rental booking website. Customers sign in with Google, browse cars, pick t
 
 **Live site:** https://trevorayunga.github.io/Drive-book/
 **Repository:** https://github.com/trevorayunga/Drive-book
-**Project board (kanban):** [add the link to your GitHub Project board here]
+**Project board (kanban):**https://github.com/users/trevorayunga/projects/5/views/1
 
-![Home page](docs/screenshots/home.png)
+
 
 ## Table of contents
 
