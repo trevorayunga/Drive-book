@@ -24,13 +24,28 @@ export function rangesOverlap(aStart, aEnd, bStart, bEnd) {
   return aStart < bEnd && bStart < aEnd;
 }
 
-export function isAvailable(carId, start, end, bookings) {
-  return !bookings.some(
-    (b) =>
-      b.carId === carId &&
-      b.status !== 'cancelled' &&
-      rangesOverlap(start, end, b.startDate, b.endDate)
+// The first active booking that clashes with the dates, or null
+export function findConflict(carId, start, end, bookings) {
+  return (
+    bookings.find(
+      (b) =>
+        b.carId === carId &&
+        b.status !== 'cancelled' &&
+        rangesOverlap(start, end, b.startDate, b.endDate)
+    ) || null
   );
+}
+
+export function isAvailable(carId, start, end, bookings) {
+  return findConflict(carId, start, end, bookings) === null;
+}
+
+// Upcoming active bookings of one car, earliest first
+export function getBookedRanges(carId, bookings, today = toISO(new Date())) {
+  return bookings
+    .filter((b) => b.carId === carId && b.status !== 'cancelled' && b.endDate > today)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    .map((b) => ({ startDate: b.startDate, endDate: b.endDate }));
 }
 
 export function calculatePrice(pricePerDay, start, end, holidays = [], surcharge = 0.2) {
