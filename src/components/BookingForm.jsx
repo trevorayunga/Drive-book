@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { calculatePrice, daysBetween, validateDates } from '../lib/bookingLogic';
+import {
+  calculatePrice,
+  daysBetween,
+  findConflict,
+  validateDates,
+} from '../lib/bookingLogic';
 import { DEPOSIT_PERCENT, calculateDeposit } from '../lib/deposit';
 import { normalizePhone, validatePhone } from '../lib/phone';
 
@@ -8,6 +13,7 @@ const inputClass = 'mt-1 block w-full rounded border border-slate-300 px-3 py-2'
 export default function BookingForm({
   car,
   holidays = [],
+  bookings = null,
   onSubmit,
   submitting = false,
   serverError = '',
@@ -24,9 +30,15 @@ export default function BookingForm({
     : null;
   const days = isValid ? daysBetween(startDate, endDate) : 0;
 
+  const conflict = isValid && bookings ? findConflict(car.id, startDate, endDate, bookings) : null;
+  const conflictMessage = conflict
+    ? `Sorry, this car is already booked from ${conflict.startDate} to ${conflict.endDate}. Please choose different dates.`
+    : '';
+  const available = Boolean(isValid && bookings && !conflict);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const problem = validateDates(startDate, endDate) || validatePhone(phone);
+    const problem = validateDates(startDate, endDate) || conflictMessage || validatePhone(phone);
     if (problem) {
       setError(problem);
       return;
@@ -41,7 +53,7 @@ export default function BookingForm({
     });
   };
 
-  const message = error || serverError;
+  const message = error || serverError || conflictMessage;
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-lg bg-white p-6 shadow">
@@ -49,6 +61,7 @@ export default function BookingForm({
         Pickup date
         <input
           type="date"
+          name="startDate"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
           className={inputClass}
@@ -58,6 +71,7 @@ export default function BookingForm({
         Return date
         <input
           type="date"
+          name="endDate"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
           className={inputClass}
@@ -68,6 +82,8 @@ export default function BookingForm({
         Phone number
         <input
           type="tel"
+          name="phone"
+          autoComplete="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="0712 345 678"
@@ -77,6 +93,7 @@ export default function BookingForm({
       <label className="block text-sm font-medium">
         Notes (optional)
         <textarea
+          name="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           maxLength={200}
@@ -88,6 +105,12 @@ export default function BookingForm({
       <p className="text-xs text-slate-500">
         We use your phone number only to contact you about this booking.
       </p>
+
+      {available && (
+        <p role="status" className="text-sm font-medium text-green-700">
+          This car is available for your dates.
+        </p>
+      )}
 
       {isValid && (
         <div className="space-y-1 text-slate-700">
@@ -109,7 +132,7 @@ export default function BookingForm({
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || Boolean(conflict)}
         className="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-500 disabled:opacity-50"
       >
         {submitting ? 'Saving...' : 'Confirm booking'}
