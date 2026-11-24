@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import BookingForm from '../components/BookingForm';
+import { business } from '../config/business';
 import { useAuth } from '../context/AuthContext';
-import { isAvailable } from '../lib/bookingLogic';
+import { getBookedRanges, isAvailable } from '../lib/bookingLogic';
 import { createBooking, getBookingsForCar } from '../services/bookings';
 import { getCar } from '../services/cars';
 import { getHolidays } from '../services/holidays';
-import { business } from '../config/business';
 
 export default function Book() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [car, setCar] = useState(null);
+  const [bookings, setBookings] = useState(null);
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -28,6 +29,10 @@ export default function Book() {
       .catch(() => setLoadError('Could not load the car.'))
       .finally(() => setLoading(false));
 
+    getBookingsForCar(id)
+      .then(setBookings)
+      .catch(() => setBookings(null));
+
     const year = new Date().getFullYear();
     Promise.all([getHolidays(year), getHolidays(year + 1)])
       .then(([thisYear, nextYear]) => setHolidays([...thisYear, ...nextYear]))
@@ -38,7 +43,9 @@ export default function Book() {
     setServerError('');
     setSubmitting(true);
     try {
+      // Check again with fresh data in case someone booked while this page was open
       const existing = await getBookingsForCar(car.id);
+      setBookings(existing);
       if (!isAvailable(car.id, startDate, endDate, existing)) {
         setServerError('Sorry, this car is already booked for those dates.');
         return;
@@ -58,7 +65,9 @@ export default function Book() {
       navigate('/bookings');
     } catch (err) {
       console.error('Booking failed:', err);
-      setServerError(`Could not save your booking (${err.code || 'unknown error'}). Please try again.`);
+      setServerError(
+        `Could not save your booking (${err.code || 'unknown error'}). Please try again.`
+      );
     } finally {
       setSubmitting(false);
     }
@@ -79,6 +88,8 @@ export default function Book() {
     );
   }
 
+  const ranges = bookings ? getBookedRanges(car.id, bookings) : [];
+
   return (
     <section className="mx-auto max-w-md">
       <h1 className="text-2xl font-bold">{`Book ${car.make} ${car.model}`}</h1>
@@ -91,9 +102,25 @@ export default function Book() {
         </Link>
         {` · Questions? Call ${business.phone}`}
       </p>
+
+      {ranges.length > 0 && (
+        <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-slate-700">
+          <p className="font-medium">This car is already booked on:</p>
+          <ul className="mt-1 list-disc pl-5">
+            {ranges.map((r) => (
+              <li key={`${r.startDate}-${r.endDate}`}>{`${r.startDate} to ${r.endDate}`}</li>
+            ))}
+          </ul>
+          <p className="mt-1 text-xs text-slate-500">
+            The car is free again on the return date shown.
+          </p>
+        </div>
+      )}
+
       <BookingForm
         car={car}
         holidays={holidays}
+        bookings={bookings}
         onSubmit={handleSubmit}
         submitting={submitting}
         serverError={serverError}
