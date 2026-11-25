@@ -54,3 +54,11 @@ export async function getAllContacts() {
   const snapshot = await getDocs(collection(db, 'bookingContacts'));
   return Object.fromEntries(snapshot.docs.map((d) => [d.id, d.data()]));
 }
+
+export async function markBookingPaid(id, paidDate) {
+  await updateDoc(doc(db, 'bookings', id), { paymentStatus: 'paid', paidDate });
+}
+
+export async function markBookingUnpaid(id) {
+  await updateDoc(doc(db, 'bookings', id), { paymentStatus: 'unpaid', paidDate: null });
+}
