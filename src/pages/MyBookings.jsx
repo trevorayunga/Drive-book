@@ -63,9 +63,10 @@ export default function MyBookings() {
               <p className="text-sm">
                 {`KES ${b.totalPrice.toLocaleString('en-US')} · `}
                 <span className="capitalize">{b.status}</span>
+                {b.paymentStatus === 'paid' && ' · Paid in full'}
               </p>
             </div>
-            {b.status === 'confirmed' && (
+            {b.status === 'confirmed' && b.paymentStatus !== 'paid' && (
               <button
                 onClick={() => handleCancel(b.id)}
                 className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-500"
