@@ -35,6 +35,8 @@ vi.mock('./services/bookings', () => ({
   createBooking: vi.fn(),
   cancelBooking: vi.fn(),
   setBookingStatus: vi.fn(),
+  markBookingPaid: vi.fn(),
+  markBookingUnpaid: vi.fn(),
 }));
 
 vi.mock('./services/holidays', () => ({
