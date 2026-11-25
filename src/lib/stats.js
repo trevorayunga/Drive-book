@@ -1,3 +1,5 @@
+import { isPaid } from './revenue';
+
 export function calculateStats(cars, bookings) {
   const active = bookings.filter((b) => b.status === 'confirmed');
   return {
@@ -5,6 +7,6 @@ export function calculateStats(cars, bookings) {
     totalBookings: bookings.length,
     activeBookings: active.length,
     cancelledBookings: bookings.length - active.length,
-    revenue: active.reduce((sum, b) => sum + b.totalPrice, 0),
+    revenue: bookings.filter(isPaid).reduce((sum, b) => sum + b.totalPrice, 0),
   };
 }
